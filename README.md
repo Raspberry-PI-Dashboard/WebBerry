@@ -1,160 +1,90 @@
-# Raspberry Pi WebSocket Gateway
+# WebBerry Gateway
 
-A lightweight and extensible WebSocket gateway for Raspberry Pi devices.
+WebBerry is a lightweight asynchronous WebSocket gateway designed for remote communication and control of embedded devices such as Raspberry Pi.
 
-The project provides a persistent WebSocket connection between a web dashboard and a Raspberry Pi, enabling remote communication, command execution, and future hardware integrations.
-
-The architecture is designed for edge devices where reliability, remote updates, and modular expansion are important.
-
----
+The gateway provides a persistent WebSocket connection where clients can send commands, receive responses, and interact with remote services.
 
 ## Features
 
-✅ **Stable WebSocket Server**
+- Async WebSocket server powered by `websockets`
+- Multiple simultaneous client connections
+- Client session management
+- Connection welcome handshake
+- Ping/Pong health checks
+- Server information requests
+- Remote shell sessions
+- Graceful shutdown handling
+- Async test suite with `pytest`
 
-* Async Python WebSocket server
-* Multiple simultaneous clients
-* Automatic connection handling
-* Ping/pong keep-alive mechanism
+## Requirements
 
-✅ **Remote Shell Access**
-
-* Open a terminal session through WebSocket
-* Execute Linux commands remotely
-* Stream command output back to the client
-
-✅ **Modular Architecture**
-
-* WebSocket transport separated from features
-* Client session management
-* Ready for future plugins
-
-✅ **Deployment Ready**
-
-* Designed to run as a systemd service
-* Supports remote update workflows
-* Suitable for headless Raspberry Pi deployments
-
----
-
-# Architecture
-
-```
-                 Browser Dashboard
-                        |
-                        |
-                   WebSocket
-                        |
-                        |
-              Raspberry Pi Gateway
-              ┌─────────────────┐
-              │   server.py     │
-              │                 │
-              │ Client Manager  │
-              │ Session Router  │
-              └─────────────────┘
-                        |
-        ┌───────────────┼───────────────┐
-        |
-   client.py
-        |
-   shell.py
-        |
-   Future modules
-        |
-   ├── gpio_manager.py
-   ├── serial_manager.py
-   ├── update_manager.py
-   └── plugins
-```
-
----
-
-# Project Structure
-
-```
-server/
-│
-├── server.py              # WebSocket server
-├── client.py              # Client session management
-├── shell.py               # Remote shell implementation
-├── config.py              # Configuration
-└── requirements.txt       # Python dependencies
-```
-
----
-
-# Requirements
-
-## Raspberry Pi
-
-Tested with:
-
-* Raspberry Pi OS
-* Python 3.10+
+- Python >= 3.12
+- websockets
+- pytest
+- pytest-asyncio
 
 Install dependencies:
 
 ```bash
-cd server
-
-python3 -m venv venv
-
-source venv/bin/activate
-
 pip install -r requirements.txt
 ```
 
----
+## Project Structure
 
-# Running the Server
-
-Start manually:
-
-```bash
-python server.py
+```
+WebBerry/
+│
+├── gateway.py
+├── client.py
+├── shell.py
+├── requirements.txt
+├── README.md
+│
+└── tests/
+    ├── test_connection.py
+    ├── test_ping.py
+    └── test_shell.py
 ```
 
-Expected output:
+## Running the Gateway
+
+Start the server:
+
+```bash
+python gateway.py
+```
+
+The WebSocket server listens on:
+
+```
+ws://0.0.0.0:8765
+```
+
+Example output:
 
 ```
 Gateway running ws://0.0.0.0:8765
 ```
 
-The server is now available at:
+## WebSocket Protocol
 
-```
-ws://<raspberry-pi-ip>:8765
-```
-
-Example:
-
-```
-ws://192.168.1.50:8765
-```
-
----
-
-# WebSocket Protocol
-
-Communication uses JSON messages.
-
-## Connection
-
-Server response:
+After a client connects, the gateway sends:
 
 ```json
 {
   "type": "connected",
+  "timestamp": "2026-07-16T15:00:00",
   "message": "Raspberry Pi Gateway ready"
 }
 ```
 
----
+## Commands
 
-# Keep Alive
+### Ping
 
-Client:
+Check connection status.
+
+Request:
 
 ```json
 {
@@ -162,19 +92,20 @@ Client:
 }
 ```
 
-Server:
+Response:
 
 ```json
 {
-  "type": "pong"
+  "type": "pong",
+  "timestamp": "2026-07-16T15:00:00"
 }
 ```
 
 ---
 
-# Device Information
+### Server Information
 
-Client:
+Request:
 
 ```json
 {
@@ -182,22 +113,22 @@ Client:
 }
 ```
 
-Server:
+Response:
 
 ```json
 {
   "type": "info",
-  "connected_at": "2026-07-16T14:00:00"
+  "connected_at": "2026-07-16T15:00:00"
 }
 ```
 
+Returns session information for the connected client.
+
 ---
 
-# Remote Shell
+### Start Remote Shell
 
-## Start shell
-
-Client:
+Request:
 
 ```json
 {
@@ -205,19 +136,13 @@ Client:
 }
 ```
 
-Server:
-
-```json
-{
-  "type": "shell_started"
-}
-```
+Starts an interactive shell session.
 
 ---
 
-## Execute command
+### Send Shell Command
 
-Client:
+Request:
 
 ```json
 {
@@ -226,141 +151,74 @@ Client:
 }
 ```
 
-Server:
-
-```json
-{
-  "type": "shell_output",
-  "data": "server.py\nclient.py\n"
-}
-```
+The command is executed remotely and the output is returned through the WebSocket channel.
 
 ---
 
-# Running as a System Service
+## Client Lifecycle
 
-Create:
+When a client connects:
 
-```
-/etc/systemd/system/rpi-gateway.service
-```
+1. A new `ClientSession` is created.
+2. The gateway sends a connection message.
+3. Incoming JSON messages are processed asynchronously.
+4. Commands are routed to the correct handler.
 
-Example:
+When a client disconnects:
 
-```ini
-[Unit]
-Description=Raspberry Pi WebSocket Gateway
-After=network.target
+- The shell session is closed.
+- Resources are released.
+- The client is removed from the active sessions list.
 
+## Shutdown Handling
 
-[Service]
-Type=simple
+The gateway supports clean shutdown through:
 
-User=pi
+- `SIGINT`
+- `SIGTERM`
 
-WorkingDirectory=/opt/rpi-gateway/server
+Shutdown sequence:
 
-ExecStart=/opt/rpi-gateway/server/venv/bin/python server.py
+1. Notify connected clients.
+2. Stop accepting new connections.
+3. Close the WebSocket server.
+4. Release resources.
 
-Restart=always
-RestartSec=5
+## Running Tests
 
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable:
+Run:
 
 ```bash
-sudo systemctl daemon-reload
-
-sudo systemctl enable rpi-gateway
-
-sudo systemctl start rpi-gateway
+pytest -v
 ```
 
-Check:
+Tests include:
 
-```bash
-systemctl status rpi-gateway
-```
+- WebSocket connection test
+- Ping/Pong communication test
+- Remote shell test
 
-Logs:
-
-```bash
-journalctl -u rpi-gateway -f
-```
-
----
-
-# Security Notes
-
-The shell feature provides remote command execution.
-
-Before exposing this outside a trusted network:
-
-* add authentication
-* use TLS (`wss://`)
-* restrict network access
-* implement user permissions
-
-Recommended deployment:
+Expected result:
 
 ```
-Internet
-   |
- VPN / Zero Trust Network
-   |
- Raspberry Pi Gateway
+tests/test_connection.py::test_connection PASSED
+tests/test_ping.py::test_ping PASSED
+tests/test_shell.py::test_shell PASSED
 ```
 
----
+## Roadmap
 
-# Roadmap
+Future improvements:
 
-## Phase 1 - Core Gateway
+- Device identification
+- Remote telemetry
+- Web dashboard
 
-✅ WebSocket server
-✅ Client sessions
-✅ Remote shell
+Nice to have:
 
----
+- Authentication system
+- Device Identification
 
-## Phase 2 - Remote Management
-
-⬜ Authentication
-⬜ Command router
-⬜ Remote deployment
-⬜ Version management
-⬜ Automatic updates
-
----
-
-## Phase 3 - Hardware Integration
-
-⬜ GPIO manager
-⬜ Serial devices
-⬜ Sensors
-⬜ PWM control
-⬜ Plugin system
-
----
-
-# Development Philosophy
-
-The project follows these principles:
-
-* Keep the WebSocket layer stable
-* Add features as independent modules
-* Avoid coupling hardware logic with communication logic
-* Design for unattended Raspberry Pi deployments
-
----
-
-# License
+## License
 
 MIT License
-
-```
-```
