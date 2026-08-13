@@ -49,36 +49,49 @@ async def client_handler(websocket):
 
     try:
 
-        async for raw_message in websocket:
+            async for raw_message in websocket:
 
-            try:
+                request_id = None
 
-                message = json.loads(
-                    raw_message
+                try:
+
+                    message = json.loads(
+                        raw_message
+                    )
+
+                    if not isinstance(message, dict):
+                        raise ValueError(
+                            "Message must be a JSON object"
+                        )
+
+                    request_id = message.get(
+                        "request_id"
+                    )
+
+                    response = await protocol.handle(
+                        message
+                    )
+
+                except json.JSONDecodeError:
+
+                    response = {
+                        "ok": False,
+                        "error": "Invalid JSON",
+                    }
+
+                except Exception as exc:
+
+                    response = {
+                        "ok": False,
+                        "error": str(exc),
+                    }
+
+                if request_id is not None:
+                    response["request_id"] = request_id
+
+                await websocket.send(
+                    json.dumps(response)
                 )
-
-                response = await protocol.handle(
-                    message
-                )
-
-            except json.JSONDecodeError:
-
-                response = {
-                    "ok": False,
-                    "error": "Invalid JSON",
-                }
-
-            except Exception as exc:
-
-                response = {
-                    "ok": False,
-                    "error": str(exc),
-                }
-
-            await websocket.send(
-                json.dumps(response)
-            )
-
     except websockets.exceptions.ConnectionClosed:
         pass
 

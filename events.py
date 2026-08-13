@@ -17,7 +17,7 @@ class EventManager:
         message = {
             "type": "event",
             "event": event,
-            "data": data or {},
+            "data": data if data is not None else {},
         }
 
         payload = json.dumps(message)
