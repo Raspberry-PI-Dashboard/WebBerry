@@ -1,4 +1,4 @@
-from config import I2C_BUS, I2C_MOCK
+from i2c.config import I2C_BUS, I2C_MOCK
 
 from .mock import MockI2CBackend
 

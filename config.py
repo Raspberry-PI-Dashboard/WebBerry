@@ -1,14 +1,33 @@
-HOST = "0.0.0.0"
-PORT = 8765
+import os
 
-BASE_DIR = "/opt/rpi-dashboard"
 
-RELEASES_DIR = f"{BASE_DIR}/releases"
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8765"))
 
-CURRENT_LINK = f"{BASE_DIR}/current"
+PROTOCOL_VERSION = 1
 
-SERVICE_NAME = "rpi-dashboard"
+DEFAULT_PWM_FREQUENCY = int(
+    os.getenv("PWM_FREQUENCY", "1000")
+)
 
-UPDATE_BRANCH = "main"
+ALLOWED_PINS = {
+    17,
+    18,
+    22,
+    23,
+    24,
+    25,
+}
 
-REPO_URL = "git@github.com:your-user/your-project.git"
+MOCK_GPIO = os.getenv("MOCK_GPIO", "").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+
+ALLOWED_SHELL_COMMANDS = {
+    "hostname",
+    "uptime",
+    "date",
+    "uname",
+}

@@ -4,7 +4,7 @@ from config import (
     MOCK_GPIO,
 )
 
-from .mock import MockGPIOBackend
+from ..modular.gpio.mock import MockGPIOBackend
 
 
 class GPIOManager:
@@ -23,7 +23,7 @@ class GPIOManager:
             return MockGPIOBackend()
 
         try:
-            from .real import RealGPIOBackend
+            from ..modular.gpio.real import RealGPIOBackend
             return RealGPIOBackend()
 
         except ImportError:
