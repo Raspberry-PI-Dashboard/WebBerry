@@ -14,7 +14,7 @@ class ClientSession:
 
         self.authenticated = False
 
-        self.connected_at = datetime.utcnow()
+        self.connected_at = datetime.now(datetime.UTC)
 
 
     async def send(self, payload):
@@ -37,7 +37,7 @@ class ClientSession:
 
     def timestamp(self):
 
-        return datetime.utcnow().isoformat()
+        return datetime.now(datetime.UTC).isoformat()
 
 
     async def handle_message(self, message):
