@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from shell import ShellSession
 
@@ -14,7 +14,7 @@ class ClientSession:
 
         self.authenticated = False
 
-        self.connected_at = datetime.now(datetime.UTC)
+        self.connected_at = datetime.now(timezone.UTC)
 
 
     async def send(self, payload):
@@ -37,7 +37,7 @@ class ClientSession:
 
     def timestamp(self):
 
-        return datetime.now(datetime.UTC).isoformat()
+        return datetime.now(timezone.UTC).isoformat()
 
 
     async def handle_message(self, message):
