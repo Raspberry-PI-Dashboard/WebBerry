@@ -4,6 +4,8 @@ WebBerry is a lightweight asynchronous WebSocket gateway designed for remote com
 
 The gateway provides a persistent WebSocket connection where clients can send commands, receive responses, and interact with remote services.
 
+For UI, see [Vigilant Carnival](https://github.com/Raspberry-PI-Dashboard/vigilant-carnival)
+
 ## Features
 
 - Async WebSocket server powered by `websockets`
