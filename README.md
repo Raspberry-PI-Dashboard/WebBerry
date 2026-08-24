@@ -4,6 +4,8 @@ A lightweight Python WebSocket gateway for communicating with a Raspberry Pi and
 
 The gateway uses **JSON messages over WebSocket**. It provides connection status, health checks, connection information, and an interactive shell channel.
 
+For UI, see [Vigilant Carnival](https://github.com/Raspberry-PI-Dashboard/vigilant-carnival)
+
 ## Features
 
 * Persistent WebSocket connections
@@ -427,3 +429,4 @@ Add the project's license information here.
 ## Status
 
 This project is a lightweight prototype/gateway implementation. Before using it in a production or Internet-facing environment, authentication, encryption, access control, and shell isolation should be implemented.
+
