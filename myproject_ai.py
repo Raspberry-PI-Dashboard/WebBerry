@@ -4,6 +4,22 @@
 # ============================================================
 
 # ============================================================
+# MODULE: config.py
+# ============================================================
+
+import os
+HOST = '0.0.0.0'
+PORT = 8765
+ALLOWED_PINS = {17, 18, 22, 23, 24, 25}
+MOCK_GPIO = os.getenv('MOCK_GPIO', '').lower() in {'1', 'true', 'yes'}
+BASE_DIR = '/opt/rpi-dashboard'
+RELEASES_DIR = f'{BASE_DIR}/releases'
+CURRENT_LINK = f'{BASE_DIR}/current'
+SERVICE_NAME = 'rpi-dashboard'
+UPDATE_BRANCH = 'main'
+REPO_URL = 'git@github.com:your-user/your-project.git'
+
+# ============================================================
 # MODULE: shell.py
 # ============================================================
 
@@ -51,12 +67,26 @@ class ShellSession:
 
 import json
 from datetime import datetime, timezone
+try:
+    from gpiozero import DigitalInputDevice
+except ImportError:
+    DigitalInputDevice = None
+
+class MockInput:
+
+    def __init__(self, pin):
+        self.pin = pin
+        self.value = False
+
+    def close(self):
+        pass
 
 class ClientSession:
 
     def __init__(self, websocket):
         self.websocket = websocket
         self.shell = None
+        self.inputs = {}
         self.authenticated = False
         self.connected_at = datetime.now(timezone.utc)
 
@@ -69,12 +99,28 @@ class ClientSession:
     def timestamp(self):
         return datetime.now(timezone.utc).isoformat()
 
+    def read_gpio(self, pin):
+        try:
+            pin = int(pin)
+        except (TypeError, ValueError):
+            raise ValueError('Invalid GPIO pin')
+        if pin not in ALLOWED_PINS:
+            raise ValueError(f'GPIO {pin} is not allowed')
+        if pin not in self.inputs:
+            if MOCK_GPIO or DigitalInputDevice is None:
+                self.inputs[pin] = MockInput(pin)
+            else:
+                self.inputs[pin] = DigitalInputDevice(pin)
+        return {'type': 'pin', 'action': 'read', 'pin': pin, 'value': bool(self.inputs[pin].value)}
+
     async def handle_message(self, message):
         msg_type = message.get('type')
         if msg_type == 'ping':
             await self.send({'type': 'pong', 'timestamp': self.timestamp()})
         elif msg_type == 'info':
             await self.send({'type': 'info', 'connected_at': self.connected_at.isoformat()})
+        elif msg_type == 'pin' and message.get('action') == 'read':
+            await self.send(self.read_gpio(message.get('pin')))
         elif msg_type == 'shell_start':
             if self.shell is None:
                 self.shell = ShellSession(self.websocket)
@@ -92,6 +138,8 @@ class ClientSession:
     async def close(self):
         if self.shell:
             await self.shell.stop()
+        for input_device in self.inputs.values():
+            input_device.close()
 
 # ============================================================
 # MODULE: gateway.py
@@ -153,9 +201,3 @@ async def run():
     finally:
         server.close()
         await server.wait_closed()
-
-# ============================================================
-# MODULE: server.py
-# ============================================================
-
-import asyncio
