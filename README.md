@@ -136,6 +136,31 @@ The server responds with:
 }
 ```
 
+### GPIO Read
+
+Send:
+
+```json
+{
+  "type": "pin",
+  "action": "read",
+  "pin": 17
+}
+```
+
+The gateway responds with the current digital input value:
+
+```json
+{
+  "type": "pin",
+  "action": "read",
+  "pin": 17,
+  "value": false
+}
+```
+
+Allowed pins are 17, 18, 22, 23, 24, and 25. Set `MOCK_GPIO=1` to use a simulated input.
+
 ## Interactive Shell
 
 ### Start a Shell
@@ -216,6 +241,7 @@ may produce:
 | ------------- | ------------------------------ |
 | `ping`        | Application-level health check |
 | `info`        | Request connection information |
+| `pin`         | Read a digital GPIO input      |
 | `shell_start` | Start the Bash session         |
 | `shell_input` | Send input to Bash             |
 

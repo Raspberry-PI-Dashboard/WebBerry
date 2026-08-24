@@ -1,7 +1,22 @@
 import json
 from datetime import datetime, timezone
 
+from config import ALLOWED_PINS, MOCK_GPIO
 from shell import ShellSession
+
+try:
+    from gpiozero import DigitalInputDevice
+except ImportError:
+    DigitalInputDevice = None
+
+
+class MockInput:
+    def __init__(self, pin):
+        self.pin = pin
+        self.value = False
+
+    def close(self):
+        pass
 
 
 class ClientSession:
@@ -11,6 +26,7 @@ class ClientSession:
         self.websocket = websocket
 
         self.shell = None
+        self.inputs = {}
 
         self.authenticated = False
 
@@ -40,6 +56,30 @@ class ClientSession:
         return datetime.now(timezone.utc).isoformat()
 
 
+    def read_gpio(self, pin):
+
+        try:
+            pin = int(pin)
+        except (TypeError, ValueError):
+            raise ValueError("Invalid GPIO pin")
+
+        if pin not in ALLOWED_PINS:
+            raise ValueError(f"GPIO {pin} is not allowed")
+
+        if pin not in self.inputs:
+            if MOCK_GPIO or DigitalInputDevice is None:
+                self.inputs[pin] = MockInput(pin)
+            else:
+                self.inputs[pin] = DigitalInputDevice(pin)
+
+        return {
+            "type": "pin",
+            "action": "read",
+            "pin": pin,
+            "value": bool(self.inputs[pin].value),
+        }
+
+
     async def handle_message(self, message):
 
         msg_type = message.get(
@@ -64,6 +104,13 @@ class ClientSession:
                     "type": "info",
                     "connected_at": self.connected_at.isoformat()
                 }
+            )
+
+
+        elif msg_type == "pin" and message.get("action") == "read":
+
+            await self.send(
+                self.read_gpio(message.get("pin"))
             )
 
 
@@ -121,3 +168,6 @@ class ClientSession:
         if self.shell:
 
             await self.shell.stop()
+
+        for input_device in self.inputs.values():
+            input_device.close()
