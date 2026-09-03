@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 
-from gpio.manager import GPIOManager
+from modular.gpio.manager import GPIOManager
 from shell import ShellSession
 
 

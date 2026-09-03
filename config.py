@@ -3,6 +3,7 @@ import os
 
 HOST = "0.0.0.0"
 PORT = 8765
+DEFAULT_PWM_FREQUENCY = 1000
 
 ALLOWED_PINS = {
 	17,
