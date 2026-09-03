@@ -72,16 +72,30 @@ async def deploy():
     }
 
 
-    run(
+    result = run(
         "python3 -m venv venv",
         cwd=release
     )
 
+    if result["code"] != 0:
+        yield {
+            "step":"error",
+            "message":result["stderr"]
+        }
+        return
 
-    run(
+
+    result = run(
         "./venv/bin/pip install -r requirements.txt",
         cwd=release
     )
+
+    if result["code"] != 0:
+        yield {
+            "step":"error",
+            "message":result["stderr"]
+        }
+        return
 
 
 
@@ -91,9 +105,16 @@ async def deploy():
     }
 
 
-    run(
+    result = run(
         f"ln -sfn {release} {CURRENT_LINK}"
     )
+
+    if result["code"] != 0:
+        yield {
+            "step":"error",
+            "message":result["stderr"]
+        }
+        return
 
 
 
@@ -103,9 +124,16 @@ async def deploy():
     }
 
 
-    run(
+    result = run(
         f"sudo systemctl restart {SERVICE_NAME}"
     )
+
+    if result["code"] != 0:
+        yield {
+            "step":"error",
+            "message":result["stderr"]
+        }
+        return
 
 
     yield {

@@ -9,12 +9,22 @@ cd "$SCRIPT_DIR"
 
 echo "Updating $(basename "$SCRIPT_DIR")..."
 git pull --ff-only
+DEPLOYED_COMMIT="$(git rev-parse --short HEAD)"
+echo "Deployed commit: $DEPLOYED_COMMIT"
 
 echo "Restarting $SERVICE_NAME..."
 sudo systemctl restart "$SERVICE_NAME"
 
 if systemctl is-active --quiet "$SERVICE_NAME"; then
-    echo "$SERVICE_NAME is running."
+    SERVICE_COMMAND="$(systemctl show "$SERVICE_NAME" --property=ExecStart --value)"
+
+    if [[ "$SERVICE_COMMAND" != *"$SCRIPT_DIR"* ]]; then
+        echo "$SERVICE_NAME is running a different project path:"
+        echo "$SERVICE_COMMAND"
+        exit 1
+    fi
+
+    echo "$SERVICE_NAME is running commit $DEPLOYED_COMMIT."
 else
     echo "$SERVICE_NAME failed to start."
     sudo systemctl status "$SERVICE_NAME" --no-pager
