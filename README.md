@@ -66,6 +66,20 @@ or, depending on the project entry point:
 python gateway.py
 ```
 
+When the gateway is installed as the `rpi-dashboard` systemd service, restart
+it on the Raspberry Pi with:
+
+```bash
+chmod +x restart_server.sh
+./restart_server.sh
+```
+
+Set `SERVICE_NAME` if the installed service uses a different name:
+
+```bash
+SERVICE_NAME=mio-python.service ./restart_server.sh
+```
+
 The gateway listens on:
 
 ```text
