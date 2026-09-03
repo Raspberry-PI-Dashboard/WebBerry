@@ -1,6 +1,7 @@
 import asyncio
 import json
 import signal
+import traceback
 import websockets
 
 from client import ClientSession
@@ -39,6 +40,8 @@ async def client_handler(websocket):
                 await session.handle_message(message)
 
             except Exception as e:
+
+                traceback.print_exc()
 
                 await session.send(
                     {
