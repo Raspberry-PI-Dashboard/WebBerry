@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SERVICE_NAME="${SERVICE_NAME:-rpi-dashboard}"
+SERVICE_NAME="${SERVICE_NAME:-berryboard.service}"
 
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     echo "$SERVICE_NAME is running; stopping it..."

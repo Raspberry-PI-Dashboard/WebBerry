@@ -15,7 +15,7 @@ MOCK_GPIO = os.getenv('MOCK_GPIO', '').lower() in {'1', 'true', 'yes'}
 BASE_DIR = '/opt/rpi-dashboard'
 RELEASES_DIR = f'{BASE_DIR}/releases'
 CURRENT_LINK = f'{BASE_DIR}/current'
-SERVICE_NAME = 'rpi-dashboard'
+SERVICE_NAME = 'berryboard.service'
 UPDATE_BRANCH = 'main'
 REPO_URL = 'git@github.com:your-user/your-project.git'
 

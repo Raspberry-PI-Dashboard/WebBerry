@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT))
 from gateway import create_server
 
 
-SERVICE_NAME = "mio-python.service"
+SERVICE_NAME = "berryboard.service"
 
 
 @pytest_asyncio.fixture(scope="session")
