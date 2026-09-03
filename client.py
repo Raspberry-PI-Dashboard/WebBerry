@@ -1,22 +1,8 @@
 import json
 from datetime import datetime, timezone
 
-from config import ALLOWED_PINS, MOCK_GPIO
+from gpio.manager import GPIOManager
 from shell import ShellSession
-
-try:
-    from gpiozero import DigitalInputDevice
-except ImportError:
-    DigitalInputDevice = None
-
-
-class MockInput:
-    def __init__(self, pin):
-        self.pin = pin
-        self.value = False
-
-    def close(self):
-        pass
 
 
 class ClientSession:
@@ -26,11 +12,12 @@ class ClientSession:
         self.websocket = websocket
 
         self.shell = None
-        self.inputs = {}
 
         self.authenticated = False
 
         self.connected_at = datetime.now(timezone.utc)
+
+        self.gpio = GPIOManager()
 
 
     async def send(self, payload):
@@ -56,30 +43,6 @@ class ClientSession:
         return datetime.now(timezone.utc).isoformat()
 
 
-    def read_gpio(self, pin):
-
-        try:
-            pin = int(pin)
-        except (TypeError, ValueError):
-            raise ValueError("Invalid GPIO pin")
-
-        if pin not in ALLOWED_PINS:
-            raise ValueError(f"GPIO {pin} is not allowed")
-
-        if pin not in self.inputs:
-            if MOCK_GPIO or DigitalInputDevice is None:
-                self.inputs[pin] = MockInput(pin)
-            else:
-                self.inputs[pin] = DigitalInputDevice(pin)
-
-        return {
-            "type": "pin",
-            "action": "read",
-            "pin": pin,
-            "value": bool(self.inputs[pin].value),
-        }
-
-
     async def handle_message(self, message):
 
         msg_type = message.get(
@@ -102,15 +65,16 @@ class ClientSession:
             await self.send(
                 {
                     "type": "info",
-                    "connected_at": self.connected_at.isoformat()
+                    "connected_at":
+                    self.connected_at.isoformat()
                 }
             )
 
 
-        elif msg_type == "pin" and message.get("action") == "read":
+        elif msg_type == "pin":
 
-            await self.send(
-                self.read_gpio(message.get("pin"))
+            await self.handle_pin(
+                message
             )
 
 
@@ -128,8 +92,8 @@ class ClientSession:
 
                 await self.send(
                     {
-                        "type":"error",
-                        "message":"Shell already running"
+                        "type": "error",
+                        "message": "Shell already running"
                     }
                 )
 
@@ -139,15 +103,15 @@ class ClientSession:
             if self.shell:
 
                 await self.shell.execute(
-                    message.get("data","")
+                    message.get("data", "")
                 )
 
             else:
 
                 await self.send(
                     {
-                        "type":"error",
-                        "message":"Shell not started"
+                        "type": "error",
+                        "message": "Shell not started"
                     }
                 )
 
@@ -156,11 +120,79 @@ class ClientSession:
 
             await self.send(
                 {
-                    "type":"error",
+                    "type": "error",
                     "message":
                     f"Unknown command {msg_type}"
                 }
             )
+
+
+    async def handle_pin(self, message):
+
+        action = message.get("action")
+        pin = message.get("pin")
+
+
+        if action == "mode":
+
+            result = self.gpio.mode(
+                pin,
+                message.get("mode")
+            )
+
+
+        elif action == "set":
+
+            result = self.gpio.set(
+                pin,
+                message.get("value")
+            )
+
+
+        elif action == "toggle":
+
+            result = self.gpio.toggle(
+                pin
+            )
+
+
+        elif action == "read":
+
+            result = self.gpio.read(
+                pin
+            )
+
+
+        elif action == "pwm_set":
+
+            result = self.gpio.pwm_set(
+                pin,
+                message.get("duty_cycle"),
+                message.get("frequency")
+            )
+
+
+        elif action == "pwm_stop":
+
+            result = self.gpio.pwm_stop(
+                pin
+            )
+
+
+        else:
+
+            raise ValueError(
+                f"Unknown pin action: {action}"
+            )
+
+
+        await self.send(
+            {
+                "type": "pin",
+                "action": action,
+                **result,
+            }
+        )
 
 
     async def close(self):
@@ -169,5 +201,4 @@ class ClientSession:
 
             await self.shell.stop()
 
-        for input_device in self.inputs.values():
-            input_device.close()
+        self.gpio.close()
