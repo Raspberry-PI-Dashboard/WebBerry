@@ -17,7 +17,10 @@ class RealGPIOBackend:
         )
 
     def input(self, pin):
-        return DigitalInputDevice(pin)
+        return DigitalInputDevice(
+            pin,
+            pull_up=False,
+        )
 
     def pwm(self, pin):
         return PWMOutputDevice(
