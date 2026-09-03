@@ -17,6 +17,9 @@ git pull --ff-only
 DEPLOYED_COMMIT="$(git rev-parse --short HEAD)"
 echo "Deployed commit: $DEPLOYED_COMMIT"
 
+echo "Installing dependencies..."
+./venv/bin/python3 -m pip install -r requirements.txt
+
 echo "Restarting $SERVICE_NAME..."
 sudo systemctl restart "$SERVICE_NAME"
 

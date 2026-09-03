@@ -1,5 +1,6 @@
 websockets>=15.0.1,<16.0
 gpiozero>=2.0
+lgpio>=0.2.2.0
 
 pytest>=8.0
 pytest-asyncio>=1.0
