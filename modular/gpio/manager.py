@@ -181,6 +181,7 @@ class GPIOManager:
 
         return {
             "pin": pin,
+            "mode": self.modes.get(pin, "input"),
             "value": bool(device.value),
         }
 
