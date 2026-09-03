@@ -166,7 +166,12 @@ class GPIOManager:
 
     def read(self, pin):
         pin = self.validate_pin(pin)
-        self._require_mode(pin, "input")
+
+        if pin not in self.modes:
+            self.mode(pin, "input")
+
+        else:
+            self._require_mode(pin, "input")
 
         input_device = self._get_input(pin)
 

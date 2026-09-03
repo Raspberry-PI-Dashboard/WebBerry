@@ -120,7 +120,14 @@ class Protocol:
         if pin is None:
             raise ValueError("Missing pin")
 
-        if action == "set":
+        if action == "mode":
+
+            result = self.gpio.mode(
+                pin,
+                message.get("mode"),
+            )
+
+        elif action == "set":
 
             result = self.gpio.set(
                 pin,
