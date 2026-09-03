@@ -1,10 +1,9 @@
 from config import (
     ALLOWED_PINS,
     DEFAULT_PWM_FREQUENCY,
-    MOCK_GPIO,
 )
 
-from .mock import MockGPIOBackend
+from .real import RealGPIOBackend
 
 
 class GPIOManager:
@@ -21,18 +20,7 @@ class GPIOManager:
         self.backend = self._create_backend()
 
     def _create_backend(self):
-        if MOCK_GPIO:
-            return MockGPIOBackend()
-
-        try:
-            from .real import RealGPIOBackend
-            return RealGPIOBackend()
-        except ImportError:
-            print(
-                "[GPIO] gpiozero unavailable, "
-                "falling back to mock"
-            )
-            return MockGPIOBackend()
+        return RealGPIOBackend()
 
     def _emit(self, event, data):
         if self.event_callback:

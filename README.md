@@ -70,8 +70,8 @@ When the gateway is installed as the `berryboard.service` systemd service, resta
 it on the Raspberry Pi with:
 
 ```bash
-chmod +x restart_server.sh
-./restart_server.sh
+chmod +x update
+./update
 ```
 
 Set `SERVICE_NAME` if the installed service uses a different name:

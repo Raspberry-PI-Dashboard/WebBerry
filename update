@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SERVICE_NAME="${SERVICE_NAME:-berryboard.service}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+cd "$SCRIPT_DIR"
+
+echo "Updating $(basename "$SCRIPT_DIR")..."
+git pull --ff-only
+
+echo "Restarting $SERVICE_NAME..."
+sudo systemctl restart "$SERVICE_NAME"
+
+if systemctl is-active --quiet "$SERVICE_NAME"; then
+    echo "$SERVICE_NAME is running."
+else
+    echo "$SERVICE_NAME failed to start."
+    sudo systemctl status "$SERVICE_NAME" --no-pager
+    exit 1
+fi
