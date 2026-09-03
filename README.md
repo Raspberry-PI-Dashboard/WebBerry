@@ -136,7 +136,36 @@ The server responds with:
 }
 ```
 
-### GPIO Read
+### GPIO Modes and Digital I/O
+
+GPIO pins support three modes: `input`, `output`, and `pwm`. A pin must be
+assigned a mode before it can be used. Allowed pins are 17, 18, 22, 23, 24,
+and 25.
+
+Set a pin to input mode:
+
+```json
+{
+  "type": "pin",
+  "action": "mode",
+  "pin": 17,
+  "mode": "input"
+}
+```
+
+The response is:
+
+```json
+{
+  "ok": true,
+  "type": "pin",
+  "action": "mode",
+  "pin": 17,
+  "mode": "input"
+}
+```
+
+Read the pin after selecting input mode:
 
 Send:
 
@@ -159,7 +188,55 @@ The gateway responds with the current digital input value:
 }
 ```
 
-Allowed pins are 17, 18, 22, 23, 24, and 25. Set `MOCK_GPIO=1` to use a simulated input.
+For digital output, select `output` mode and use either `set` or `toggle`:
+
+```json
+{
+  "type": "pin",
+  "action": "set",
+  "pin": 17,
+  "value": true
+}
+```
+
+```json
+{
+  "type": "pin",
+  "action": "toggle",
+  "pin": 17
+}
+```
+
+### PWM Output
+
+Select `pwm` mode before configuring a pin. `duty_cycle` must be between
+`0.0` and `1.0`; frequency is a positive integer.
+
+```json
+{
+  "type": "pin",
+  "action": "pwm_set",
+  "pin": 18,
+  "duty_cycle": 0.5,
+  "frequency": 1000
+}
+```
+
+Stop PWM output with:
+
+```json
+{
+  "type": "pin",
+  "action": "pwm_stop",
+  "pin": 18
+}
+```
+
+Using `set`, `toggle`, `read`, or a PWM action with the wrong pin mode returns
+an error. Changing a pin's mode closes its existing GPIO device first.
+
+Set `MOCK_GPIO=1` to use the simulated GPIO backend. The server also falls
+back to the mock backend when `gpiozero` is unavailable.
 
 ## Interactive Shell
 
@@ -241,7 +318,7 @@ may produce:
 | ------------- | ------------------------------ |
 | `ping`        | Application-level health check |
 | `info`        | Request connection information |
-| `pin`         | Read a digital GPIO input      |
+| `pin`         | Configure or control a GPIO pin |
 | `shell_start` | Start the Bash session         |
 | `shell_input` | Send input to Bash             |
 
@@ -252,6 +329,7 @@ may produce:
 | `connected`       | WebSocket session initialized       |
 | `pong`            | Response to `ping`                  |
 | `info`            | Connection information              |
+| `pin`             | GPIO operation result               |
 | `shell_started`   | Bash session successfully started   |
 | `shell_output`    | Output produced by Bash             |
 | `error`           | Invalid request or processing error |
@@ -325,8 +403,9 @@ The gateway currently uses these settings:
 ```python
 HOST = "0.0.0.0"
 PORT = 8765
-PING_INTERVAL = 20
-PING_TIMEOUT = 30
+ALLOWED_PINS = {17, 18, 22, 23, 24, 25}
+MOCK_GPIO = False
+DEFAULT_PWM_FREQUENCY = 1000
 ```
 
 ### Host
@@ -340,6 +419,12 @@ The default WebSocket port is `8765`.
 ### Keepalive
 
 The WebSocket library sends protocol-level pings every 20 seconds and considers a connection unhealthy if the expected response is not received within 30 seconds.
+
+### GPIO
+
+`ALLOWED_PINS` limits GPIO access to the listed pins. `MOCK_GPIO` enables the
+simulated backend, which is useful for development and tests. PWM uses
+`DEFAULT_PWM_FREQUENCY` when no frequency is supplied.
 
 ## Graceful Shutdown
 
@@ -384,9 +469,15 @@ A typical project structure is:
 
 ```text
 project/
-├── gateway.py
 ├── client.py
-├── shell.py
+├── config.py
+├── gateway.py
+├── modular/
+│   ├── gpio/
+│   ├── i2c/
+│   ├── protocol.py
+│   └── server.py
+├── myproject_ai.py
 └── server.py
 ```
 
@@ -407,6 +498,21 @@ Manages the Bash subprocess and streams its output back through WebSocket.
 ### `server.py`
 
 Project-level server entry point, if used by the application.
+
+### `modular/`
+
+The modular implementation separates the GPIO, I2C, shell, protocol, event,
+and server components. `modular/server.py` is the modular WebSocket entry
+point.
+
+### `myproject_ai.py`
+
+Generated flattened deployment artifact containing the project modules in a
+single Python file. Regenerate it with:
+
+```bash
+python flatten.py
+```
 
 ## Example Client
 
