@@ -4,10 +4,15 @@ set -euo pipefail
 
 SERVICE_NAME="${SERVICE_NAME:-berryboard.service}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+DEPLOY_DIR="$SCRIPT_DIR"
 
-cd "$SCRIPT_DIR"
+if [[ -d "$SCRIPT_DIR/current/.git" ]]; then
+    DEPLOY_DIR="$SCRIPT_DIR/current"
+fi
 
-echo "Updating $(basename "$SCRIPT_DIR")..."
+cd "$DEPLOY_DIR"
+
+echo "Updating $(basename "$DEPLOY_DIR")..."
 git pull --ff-only
 DEPLOYED_COMMIT="$(git rev-parse --short HEAD)"
 echo "Deployed commit: $DEPLOYED_COMMIT"
@@ -18,7 +23,7 @@ sudo systemctl restart "$SERVICE_NAME"
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     SERVICE_COMMAND="$(systemctl show "$SERVICE_NAME" --property=ExecStart --value)"
 
-    if [[ "$SERVICE_COMMAND" != *"$SCRIPT_DIR"* ]]; then
+    if [[ "$SERVICE_COMMAND" != *"$DEPLOY_DIR"* ]]; then
         echo "$SERVICE_NAME is running a different project path:"
         echo "$SERVICE_COMMAND"
         exit 1
