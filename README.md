@@ -217,6 +217,27 @@ The gateway responds with the current digital input value:
 }
 ```
 
+For a pin in `pwm` mode, `read` returns the numeric duty cycle in the
+`0.0` to `1.0` range instead of a boolean:
+
+```json
+{
+  "type": "pin",
+  "action": "read",
+  "pin": 18
+}
+```
+
+```json
+{
+  "type": "pin",
+  "action": "read",
+  "pin": 18,
+  "mode": "pwm",
+  "value": 0.5
+}
+```
+
 For digital output, select `output` mode and use either `set` or `toggle`:
 
 ```json

@@ -166,6 +166,7 @@ class GPIOManager:
 
     def read(self, pin):
         pin = self.validate_pin(pin)
+        mode = self.modes.get(pin, "input")
 
         if pin in self.inputs:
             device = self.inputs[pin]
@@ -179,10 +180,16 @@ class GPIOManager:
         else:
             device = self._get_input(pin)
 
+        value = (
+            float(device.value)
+            if mode == "pwm"
+            else bool(device.value)
+        )
+
         return {
             "pin": pin,
-            "mode": self.modes.get(pin, "input"),
-            "value": bool(device.value),
+            "mode": mode,
+            "value": value,
         }
 
     # ------------------------------------------------------------------
