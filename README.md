@@ -46,10 +46,17 @@ Each WebSocket client receives its own `ClientSession` and, when requested, its 
 * Python 3.10 or newer
 * Linux/Raspberry Pi environment
 * Network access between the client and Raspberry Pi
-* Python package:
+* Raspberry Pi GPIO development library:
 
 ```bash
-pip install websockets
+sudo apt update
+sudo apt install -y liblgpio-dev
+```
+
+* Python packages:
+
+```bash
+pip install -r requirements.txt
 ```
 
 ## Running the Gateway
