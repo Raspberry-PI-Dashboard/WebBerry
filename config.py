@@ -21,4 +21,4 @@ SERVICE_NAME = "berryboard.service"
 
 UPDATE_BRANCH = "main"
 
-REPO_URL = "https://github.com/Raspberry-PI-Dashboard/BerryBoard.git"
+REPO_URL = "https://github.com/Raspberry-PI-Dashboard/WebBerry.git"
