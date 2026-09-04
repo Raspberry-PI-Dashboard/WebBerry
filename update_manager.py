@@ -36,10 +36,21 @@ async def deploy():
     )
 
 
-    os.makedirs(
-        release,
-        exist_ok=True
-    )
+    try:
+        os.makedirs(
+            release,
+            exist_ok=True
+        )
+    except PermissionError as exc:
+        yield {
+            "step": "error",
+            "message": (
+                f"Cannot create {RELEASES_DIR}: {exc}. "
+                "Grant the berryboard service user write access "
+                "to /opt/rpi-dashboard."
+            ),
+        }
+        return
 
 
     yield {
