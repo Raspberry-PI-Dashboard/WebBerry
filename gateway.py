@@ -5,6 +5,7 @@ import traceback
 import websockets
 
 from client import ClientSession
+from modular.gpio.manager import GPIOManager
 
 HOST = "0.0.0.0"
 PORT = 8765
@@ -14,11 +15,12 @@ PING_TIMEOUT = 30
 
 clients = set()
 shutdown_event = asyncio.Event()
+gpio = GPIOManager()
 
 
 async def client_handler(websocket):
 
-    session = ClientSession(websocket)
+    session = ClientSession(websocket, gpio)
 
     clients.add(session)
 
@@ -138,3 +140,5 @@ async def run():
         server.close()
 
         await server.wait_closed()
+
+        gpio.close()

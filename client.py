@@ -7,7 +7,7 @@ from shell import ShellSession
 
 class ClientSession:
 
-    def __init__(self, websocket):
+    def __init__(self, websocket, gpio=None):
 
         self.websocket = websocket
 
@@ -17,7 +17,8 @@ class ClientSession:
 
         self.connected_at = datetime.now(timezone.utc)
 
-        self.gpio = GPIOManager()
+        self.gpio = gpio or GPIOManager()
+        self.owns_gpio = gpio is None
 
 
     async def send(self, payload):
@@ -201,4 +202,6 @@ class ClientSession:
 
             await self.shell.stop()
 
-        self.gpio.close()
+        if self.owns_gpio:
+            self.gpio.close()
+
