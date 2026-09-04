@@ -21,4 +21,4 @@ SERVICE_NAME = "berryboard.service"
 
 UPDATE_BRANCH = "main"
 
-REPO_URL = "git@github.com:your-user/your-project.git"
+REPO_URL = "git@github.com/Raspberry-PI-Dashboard/BerryBoard.git"

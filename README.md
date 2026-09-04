@@ -94,6 +94,21 @@ ws://192.168.1.100:8765
 
 Replace the address with the Raspberry Pi's address on your network.
 
+### Update over WebSocket
+
+Send this command to deploy the latest configured branch and restart the
+`berryboard.service` systemd service:
+
+```json
+{
+  "type": "update"
+}
+```
+
+The gateway sends progress messages with `type: "update"`. The WebSocket
+connection closes when systemd restarts the gateway; reconnect after the
+service becomes active.
+
 ## Protocol
 
 The application protocol consists of JSON messages sent through the WebSocket connection.

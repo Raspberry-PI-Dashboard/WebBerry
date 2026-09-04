@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from modular.gpio.manager import GPIOManager
 from shell import ShellSession
+from update_manager import deploy
 
 
 class ClientSession:
@@ -117,6 +118,11 @@ class ClientSession:
                 )
 
 
+        elif msg_type == "update":
+
+            await self.handle_update()
+
+
         else:
 
             await self.send(
@@ -124,6 +130,18 @@ class ClientSession:
                     "type": "error",
                     "message":
                     f"Unknown command {msg_type}"
+                }
+            )
+
+
+    async def handle_update(self):
+
+        async for progress in deploy():
+
+            await self.send(
+                {
+                    "type": "update",
+                    **progress,
                 }
             )
 
