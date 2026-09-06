@@ -98,12 +98,10 @@ async def main():
     print("=" * 50)
     print(f"WebSocket : {HOST}:{PORT}")
     print(
-        f"GPIO      : "
-        f"{'MOCK' if gpio.backend.is_mock else 'REAL'}"
+        f"GPIO      : REAL"
     )
     print(
-        f"I2C       : "
-        f"{'MOCK' if i2c.backend.is_mock else 'REAL'} "
+        f"I2C       : REAL "
         f"(bus {i2c.bus_number})"
     )
     print("=" * 50)

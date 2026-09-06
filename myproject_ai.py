@@ -11,7 +11,6 @@ import os
 HOST = '0.0.0.0'
 PORT = 8765
 ALLOWED_PINS = {17, 18, 22, 23, 24, 25}
-MOCK_GPIO = os.getenv('MOCK_GPIO', '').lower() in {'1', 'true', 'yes'}
 BASE_DIR = '/opt/rpi-dashboard'
 RELEASES_DIR = f'{BASE_DIR}/releases'
 CURRENT_LINK = f'{BASE_DIR}/current'
@@ -72,15 +71,6 @@ try:
 except ImportError:
     DigitalInputDevice = None
 
-class MockInput:
-
-    def __init__(self, pin):
-        self.pin = pin
-        self.value = False
-
-    def close(self):
-        pass
-
 class ClientSession:
 
     def __init__(self, websocket):
@@ -107,10 +97,9 @@ class ClientSession:
         if pin not in ALLOWED_PINS:
             raise ValueError(f'GPIO {pin} is not allowed')
         if pin not in self.inputs:
-            if MOCK_GPIO or DigitalInputDevice is None:
-                self.inputs[pin] = MockInput(pin)
-            else:
-                self.inputs[pin] = DigitalInputDevice(pin)
+            if DigitalInputDevice is None:
+                raise ImportError('gpiozero is required for GPIO input support')
+            self.inputs[pin] = DigitalInputDevice(pin)
         return {'type': 'pin', 'action': 'read', 'pin': pin, 'value': bool(self.inputs[pin].value)}
 
     async def handle_message(self, message):

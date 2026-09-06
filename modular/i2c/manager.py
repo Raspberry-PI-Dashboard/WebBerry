@@ -1,6 +1,4 @@
-from config import I2C_BUS, I2C_MOCK
-
-from .mock import MockI2CBackend
+from config import I2C_BUS
 
 
 class I2CManager:
@@ -15,28 +13,16 @@ class I2CManager:
     # ------------------------------------------------------------------
 
     def _create_backend(self):
-
-        if I2C_MOCK:
-            return MockI2CBackend(
-                self.bus_number
-            )
-
         try:
             from .real import RealI2CBackend
 
             return RealI2CBackend(
                 self.bus_number
             )
-
-        except ImportError:
-            print(
-                "[I2C] smbus2 unavailable, "
-                "falling back to mock"
-            )
-
-            return MockI2CBackend(
-                self.bus_number
-            )
+        except ImportError as exc:
+            raise ImportError(
+                "smbus2 is required for the I2C backend"
+            ) from exc
 
     # ------------------------------------------------------------------
     # Events
@@ -375,7 +361,6 @@ class I2CManager:
     def state(self):
         return {
             "bus": self.bus_number,
-            "mock": self.backend.is_mock,
         }
 
     # ------------------------------------------------------------------

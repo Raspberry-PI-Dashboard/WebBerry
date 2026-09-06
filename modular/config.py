@@ -19,12 +19,6 @@ ALLOWED_PINS = {
     25,
 }
 
-MOCK_GPIO = os.getenv("MOCK_GPIO", "").lower() in {
-    "1",
-    "true",
-    "yes",
-}
-
 ALLOWED_SHELL_COMMANDS = {
     "hostname",
     "uptime",

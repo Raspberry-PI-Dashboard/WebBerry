@@ -8,7 +8,6 @@ from config import DEFAULT_PWM_FREQUENCY
 
 
 class RealGPIOBackend:
-    is_mock = False
 
     def output(self, pin):
         return DigitalOutputDevice(

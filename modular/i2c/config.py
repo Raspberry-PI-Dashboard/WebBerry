@@ -24,18 +24,6 @@ I2C_BUS = int(
     os.getenv("I2C_BUS", "1")
 )
 
-I2C_MOCK = os.getenv("I2C_MOCK", "").lower() in {
-    "1",
-    "true",
-    "yes",
-}
-
-MOCK_GPIO = os.getenv("MOCK_GPIO", "").lower() in {
-    "1",
-    "true",
-    "yes",
-}
-
 ALLOWED_SHELL_COMMANDS = {
     "hostname",
     "uptime",

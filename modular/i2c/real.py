@@ -3,8 +3,6 @@ from smbus2 import SMBus
 
 class RealI2CBackend:
 
-    is_mock = False
-
     def __init__(self, bus_number):
         self.bus_number = bus_number
         self.bus = SMBus(bus_number)

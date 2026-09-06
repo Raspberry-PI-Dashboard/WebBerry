@@ -6,6 +6,13 @@ The gateway uses **JSON messages over WebSocket**. It provides connection status
 
 For UI, see [Vigilant Carnival](https://github.com/Raspberry-PI-Dashboard/vigilant-carnival)
 
+## Example payloads
+
+See the module examples for concrete request/response payloads:
+
+- [modular/gpio/EXAMPLE.md](modular/gpio/EXAMPLE.md)
+- [modular/i2c/EXAMPLE.md](modular/i2c/EXAMPLE.md)
+
 ## Features
 
 * Persistent WebSocket connections
@@ -292,9 +299,6 @@ Stop PWM output with:
 Using `set`, `toggle`, `read`, or a PWM action with the wrong pin mode returns
 an error. Changing a pin's mode closes its existing GPIO device first.
 
-Set `MOCK_GPIO=1` to use the simulated GPIO backend. The server also falls
-back to the mock backend when `gpiozero` is unavailable.
-
 ## Interactive Shell
 
 ### Start a Shell
@@ -461,7 +465,6 @@ The gateway currently uses these settings:
 HOST = "0.0.0.0"
 PORT = 8765
 ALLOWED_PINS = {17, 18, 22, 23, 24, 25}
-MOCK_GPIO = False
 DEFAULT_PWM_FREQUENCY = 1000
 ```
 
@@ -479,8 +482,7 @@ The WebSocket library sends protocol-level pings every 20 seconds and considers 
 
 ### GPIO
 
-`ALLOWED_PINS` limits GPIO access to the listed pins. `MOCK_GPIO` enables the
-simulated backend, which is useful for development and tests. PWM uses
+`ALLOWED_PINS` limits GPIO access to the listed pins. PWM uses
 `DEFAULT_PWM_FREQUENCY` when no frequency is supplied.
 
 ## Graceful Shutdown

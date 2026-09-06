@@ -5,7 +5,6 @@ from config import (
     ALLOWED_SHELL_COMMANDS,
     DEFAULT_PWM_FREQUENCY,
     I2C_BUS,
-    MOCK_GPIO,
     PROTOCOL_VERSION,
 )
 
@@ -61,7 +60,6 @@ class Protocol:
                 "name": platform.node(),
                 "platform": platform.system(),
                 "release": platform.release(),
-                "mock_gpio": MOCK_GPIO,
             },
 
             "capabilities": [
@@ -84,7 +82,6 @@ class Protocol:
 
             "i2c": {
                 "bus": I2C_BUS,
-                "mock": self.i2c.backend.is_mock,
                 "operations": [
                     "scan",
                     "read_byte",
