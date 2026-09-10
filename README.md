@@ -4,7 +4,7 @@ A lightweight Python WebSocket gateway for communicating with a Raspberry Pi and
 
 The gateway uses **JSON messages over WebSocket**. It provides connection status, health checks, connection information, and an interactive shell channel.
 
-For UI, see [Vigilant Carnival](https://github.com/Raspberry-PI-Dashboard/vigilant-carnival)
+For UI, see [BerryBoard](https://github.com/Raspberry-PI-Dashboard/BerryBoard)
 
 ## Example payloads
 
